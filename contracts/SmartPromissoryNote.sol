@@ -5,6 +5,7 @@ contract SmartPromissoryNote {
     address public owner;
     address public newPendingOwner;
     string public noteData; // AES256 + base64
+    uint256 public version; // wersjonowanie jako dodatkowe zabezpieczenie
 
     // - stworzenie kontraktu (twórca staje się właścicielem)
     function SmartPromissoryNote() public {
@@ -45,7 +46,9 @@ contract SmartPromissoryNote {
         _;
     }
 
-    function acceptOwnership() public pendingOwnerOnly() {
+    function acceptOwnership(uint256 acceptedVersion) public pendingOwnerOnly() {
+        require(version == acceptedVersion);
+
         OwnerChangedEvent(owner, newPendingOwner);
         owner = newPendingOwner;
         newPendingOwner = address(0);
@@ -59,6 +62,7 @@ contract SmartPromissoryNote {
 
         NoteDataUploadedEvent();
         noteData = _data;
+        version++;
     }
 
     // - operacja „zniszczenia” weksla (zmiana właściciela na NULL, czy jakiś inny adres tego typu, usunięcie dokumentu weksla)
